@@ -34,10 +34,14 @@ module OpenExchangeRates
     end
     
     def set_client(options = {})
-      @client = Faraday.new do |faraday|
+      proxy     =   options.fetch(:proxy, nil)
+      ua        =   options.fetch(:user_agent, "Faraday v0.12.1")
+      
+      @client   =   Faraday.new do |faraday|
+        faraday.headers[:user_agent] = ua
         faraday.response :logger if options.fetch(:verbose, false)
         faraday.response :json, content_type: /\bjson$/
-        faraday.proxy    options.fetch(:proxy, nil)
+        faraday.proxy    proxy if proxy
         faraday.adapter  Faraday.default_adapter
       end
     end
