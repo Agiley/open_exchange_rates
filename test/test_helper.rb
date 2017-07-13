@@ -1,7 +1,9 @@
 require "rubygems"
 require "test/unit"
+require "mocha/test_unit"
 require "rr"
-require 'dotenv'
+require "dotenv"
+require "json"
 require "open_exchange_rates"
 
 # Pick up ENV variables from .env file if exists

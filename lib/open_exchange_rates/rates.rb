@@ -1,4 +1,5 @@
-require "open-uri"
+require "faraday"
+require "faraday_middleware"
 require "date"
 
 module OpenExchangeRates
@@ -17,7 +18,7 @@ module OpenExchangeRates
       end
     end
 
-    attr_reader :app_id
+    attr_reader :app_id, :client
 
     def initialize(options = {})
       if options.kind_of? Hash
@@ -26,7 +27,19 @@ module OpenExchangeRates
         warn "[DEPRECATION] `OpenExchangeRates::Rates.new('myappid')` is deprecated.  Please use `OpenExchangeRates::Rates.new(:app_id => 'myappid')` instead."
         @app_id = options
       end
+      
       raise MissingAppIdError unless @app_id
+      
+      set_client(options.fetch(:faraday, {}))
+    end
+    
+    def set_client(options = {})
+      @client = Faraday.new do |faraday|
+        faraday.response :logger if options.fetch(:verbose, false)
+        faraday.response :json, content_type: /\bjson$/
+        faraday.proxy    options.fetch(:proxy, nil)
+        faraday.adapter  Faraday.default_adapter
+      end
     end
 
     def exchange_rate(options = {})
@@ -90,13 +103,15 @@ module OpenExchangeRates
     end
 
     def parse_latest
-      @latest_parser ||= OpenExchangeRates::Parser.new
-      @latest_parser.parse(open("#{OpenExchangeRates::LATEST_URL}?app_id=#{@app_id}"))
+      request("#{OpenExchangeRates::LATEST_URL}?app_id=#{@app_id}")
     end
 
     def parse_on(date_string)
-      @on_parser = OpenExchangeRates::Parser.new
-      @on_parser.parse(open("#{OpenExchangeRates::BASE_URL}/historical/#{date_string}.json?app_id=#{@app_id}"))
+      request("#{OpenExchangeRates::BASE_URL}/historical/#{date_string}.json?app_id=#{@app_id}")
+    end
+    
+    def request(url)
+      @client.get(url)&.body
     end
 
   end

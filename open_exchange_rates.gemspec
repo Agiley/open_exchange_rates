@@ -15,10 +15,13 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = OpenExchangeRates::VERSION
   gem.license       = "MIT"
-
-  gem.add_dependency('yajl-ruby')
+  
+  gem.add_dependency('faraday')
+  gem.add_dependency('faraday_middleware')
 
   gem.add_development_dependency('rr')
   gem.add_development_dependency('rake')
   gem.add_development_dependency('dotenv')
+  gem.add_development_dependency('json')
+  gem.add_development_dependency('mocha')
 end
